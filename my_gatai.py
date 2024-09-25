@@ -1,3 +1,4 @@
+# this basically just copies some functions/classes from gatai to expose them to the user
 from __future__ import annotations
 import scipy
 import numpy as np
