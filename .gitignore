@@ -1,3 +1,6 @@
 data/
 output/
 poetry.lock
+__pycache__/
+*.py[cod]
+*$py.class

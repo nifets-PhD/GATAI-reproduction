@@ -48,17 +48,21 @@ class Expression_data:
         :type expression_data: pd.DataFrame
         """
         self.raw = expression_data
-        self.full = expression_data.copy()
-        self.full["Phylostratum"] = Expression_data.quantilerank(
-            self.full["Phylostratum"]
-        )
-        exps = self.full.iloc[:, 2:]
+
         self.transformation = transformation
+        # NOTE: apparently pandas iloc sometimes returns a copy instead of a view if the dtypes of columns are different
+        # In our case, applying the transformation to exps wasn't also applying it to full so I changed the order trasnformations are applied
+        exps = self.raw.iloc[:, 2:]
         match transformation:
             case "sqrt":
                 exps = exps.map(lambda x: np.sqrt(x))
             case "log":
                 exps = exps.map(lambda x: np.log(x + 1))
+
+        self.full = pd.concat([self.raw[["Phylostratum", "GeneID"]], exps], axis=1)
+        self.full["Phylostratum"] = Expression_data.quantilerank(
+            self.full["Phylostratum"]
+        )
 
         age_weighted = exps.mul(self.full["Phylostratum"], axis=0).to_numpy()
         self.age_weighted = age_weighted
@@ -71,7 +75,7 @@ class Expression_data:
         self.expressions_n_sc = exps.to_numpy()
 
     def remove_genes(self, gene_ids) -> Expression_data:
-        expr_data = self.full[~self.full["GeneID"].isin(gene_ids)]
+        expr_data = self.raw[~self.raw["GeneID"].isin(gene_ids)]
         return Expression_data(expr_data, transformation=self.transformation)
 
     @property
