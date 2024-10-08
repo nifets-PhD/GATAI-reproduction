@@ -32,9 +32,20 @@ class Expression_data:
         return Expression_data(arr, **kwargs)
 
     @property
+    def p_matrix(self):
+        normalised_expr = self.expressions / self.expressions_n.sum(axis=0)
+        weighted_expr = normalised_expr.mul(self.full["Phylostratum"], axis=0)
+
+        return weighted_expr
+
+    @property
+    def centered_p_matrix(self):
+        p = self.p_matrix.to_numpy()
+        return p - np.mean(p, axis=1)[:, None]
+
+    @property
     def tai(self):
-        weighted_expr = self.expressions.mul(self.full["Phylostratum"], axis=0)
-        avgs = weighted_expr.sum(axis=0) / self.expressions_n_sc.sum(axis=0)
+        avgs = self.p_matrix.sum(axis=0)
 
         return avgs
 
